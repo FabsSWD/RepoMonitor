@@ -180,13 +180,13 @@ const GitHubRepoMonitor = () => {
   const getEventIcon = (type) => {
     switch (type) {
       case 'push':
-        return <GitCommit className="w-4 h-4" />;
+        return <GitCommit className="w-3 h-3 sm:w-4 sm:h-4" />;
       case 'branch':
-        return <GitBranch className="w-4 h-4" />;
+        return <GitBranch className="w-3 h-3 sm:w-4 sm:h-4" />;
       case 'pr':
-        return <GitPullRequest className="w-4 h-4" />;
+        return <GitPullRequest className="w-3 h-3 sm:w-4 sm:h-4" />;
       default:
-        return <GitCommit className="w-4 h-4" />;
+        return <GitCommit className="w-3 h-3 sm:w-4 sm:h-4" />;
     }
   };
 
@@ -205,10 +205,10 @@ const GitHubRepoMonitor = () => {
 
   if (!repoConfig) {
     return (
-      <div className="min-h-screen bg-[#1e1e1e] text-white flex items-center justify-center p-8">
+      <div className="min-h-screen bg-[#1e1e1e] text-white flex items-center justify-center p-4 sm:p-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Repositorio no configurado</h1>
-          <p className="text-gray-400">Este repositorio no está disponible.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4">Repositorio no configurado</h1>
+          <p className="text-gray-400 text-sm sm:text-base">Este repositorio no está disponible.</p>
         </div>
       </div>
     );
@@ -216,37 +216,37 @@ const GitHubRepoMonitor = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#1e1e1e] text-white flex items-center justify-center p-8">
-        <div className="max-w-md w-full">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-800 rounded-full mb-4">
-              <Lock className="w-10 h-10 text-gray-400" />
+      <div className="min-h-screen bg-[#1e1e1e] text-white flex items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gray-800 rounded-full mb-4">
+              <Lock className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">Acceso Restringido</h1>
-            <p className="text-gray-400">Ingresa la contraseña para acceder al monitor del repositorio</p>
-            <p className="text-sm text-gray-500 mt-2">{repoConfig.frameworkPath}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Acceso Restringido</h1>
+            <p className="text-gray-400 text-sm sm:text-base px-4">Ingresa la contraseña para acceder al monitor del repositorio</p>
+            <p className="text-xs sm:text-sm text-gray-500 mt-2">{repoConfig.frameworkPath}</p>
           </div>
           
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <form onSubmit={handlePasswordSubmit} className="space-y-4 px-4 sm:px-0">
             <div>
               <input
                 type="password"
                 placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400 transition-all text-sm sm:text-base"
                 autoFocus
               />
               {passwordError && (
-                <p className="text-red-500 text-sm mt-2">{passwordError}</p>
+                <p className="text-red-500 text-xs sm:text-sm mt-2">{passwordError}</p>
               )}
             </div>
             <button
               type="submit"
-              className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-colors"
+              className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all text-sm sm:text-base"
             >
               <span className="flex items-center justify-center gap-2">
-                <Unlock className="w-5 h-5" />
+                <Unlock className="w-4 h-4 sm:w-5 sm:h-5" />
                 Acceder
               </span>
             </button>
@@ -260,27 +260,27 @@ const GitHubRepoMonitor = () => {
     return (
       <div className="min-h-screen bg-[#1e1e1e] text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Cargando datos del repositorio...</p>
+          <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400 text-sm sm:text-base">Cargando datos del repositorio...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1e1e1e] text-white p-8">
+    <div className="min-h-screen bg-[#1e1e1e] text-white p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         {error && (
-          <div className="mb-8 p-4 bg-red-900/20 border border-red-500 rounded-lg text-red-400">
+          <div className="mb-6 sm:mb-8 p-3 sm:p-4 bg-red-900/20 border border-red-500 rounded-lg text-red-400 text-sm sm:text-base">
             {error}
           </div>
         )}
 
         {repoData && (
           <>
-            <div className="text-center mb-12">
-              <h1 className="text-2xl font-semibold text-gray-400 mb-2">{repoData.name}</h1>
-              <div className="flex items-center justify-center gap-4 text-sm">
+            <div className="text-center mb-8 sm:mb-12">
+              <h1 className="text-xl sm:text-2xl font-semibold text-gray-400 mb-2">{repoData.name}</h1>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm">
                 <span className="text-gray-500">{repoData.frameworkPath}</span>
                 <a 
                   href={repoData.url} 
@@ -288,77 +288,77 @@ const GitHubRepoMonitor = () => {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
                   Ver en GitHub
                 </a>
               </div>
             </div>
 
-            <div className="text-center mb-16">
+            <div className="text-center mb-12 sm:mb-16">
               <div className="inline-block">
-                <div className="text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 animate-pulse">
+                <div className="text-5xl sm:text-7xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 animate-pulse">
                   {repoData.currentVersion}
                 </div>
-                <p className="text-gray-400 mt-4">Versión Actual</p>
+                <p className="text-gray-400 mt-2 sm:mt-4 text-sm sm:text-base">Versión Actual</p>
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Actividad Reciente</h2>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
+                <h2 className="text-lg sm:text-xl font-semibold">Actividad Reciente</h2>
                 <button
                   onClick={fetchRepoEvents}
-                  className="text-sm text-gray-400 hover:text-white transition-colors"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-400 hover:text-white transition-all"
                 >
                   Actualizar
                 </button>
               </div>
               
               {events.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-8 sm:py-12 text-gray-500 text-sm sm:text-base">
                   No hay actividad reciente en el repositorio
                 </div>
               ) : (
                 <div className="relative">
-                  <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-700"></div>
+                  <div className="absolute left-5 sm:left-6 top-0 bottom-0 w-0.5 bg-gray-700"></div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {events.map((event, index) => (
                       <div
                         key={event.id}
-                        className={`relative flex items-start gap-4 animate-slideUp`}
+                        className={`relative flex items-start gap-3 sm:gap-4 animate-slideUp`}
                         style={{
                           animationDelay: `${index * 0.1}s`,
                           opacity: 0,
                           animationFillMode: 'forwards'
                         }}
                       >
-                        <div className="relative">
+                        <div className="relative flex-shrink-0">
                           <img 
                             src={event.avatarUrl} 
                             alt={event.author}
-                            className="w-12 h-12 rounded-full border-2 border-gray-700"
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-gray-700"
                             loading="lazy"
                           />
-                          <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full ${getEventColor(event.type)} flex items-center justify-center text-white shadow-lg`}>
+                          <div className={`absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full ${getEventColor(event.type)} flex items-center justify-center text-white shadow-lg`}>
                             {getEventIcon(event.type)}
                           </div>
                         </div>
                         
-                        <div className="flex-1 bg-gray-800 rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow">
-                          <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 bg-gray-800 rounded-lg p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2 mb-2">
                             <div>
-                              <span className="text-sm font-semibold text-gray-300">
+                              <span className="text-xs sm:text-sm font-semibold text-gray-300">
                                 {event.type === 'branch' ? 'Nueva rama: ' : 'Push a '}
                                 <span className="text-blue-400">{event.branch}</span>
                               </span>
                             </div>
                             <span className="text-xs text-gray-500">{formatTimestamp(event.timestamp)}</span>
                           </div>
-                          <p className="text-white mb-2 break-words">{event.message}</p>
-                          <div className="flex items-center gap-4 text-xs text-gray-400">
+                          <p className="text-white mb-2 break-words text-sm sm:text-base">{event.message}</p>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs text-gray-400">
                             <span>Por: @{event.author}</span>
-                            {event.sha !== 'N/A' && <span>SHA: {event.sha}</span>}
+                            {event.sha !== 'N/A' && <span className="hidden sm:inline">SHA: {event.sha}</span>}
                           </div>
                         </div>
                       </div>
