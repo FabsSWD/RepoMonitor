@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { GitBranch, GitCommit, GitPullRequest, ExternalLink, Lock, Unlock } from 'lucide-react';
+import { GitBranch, GitCommit, GitPullRequest, ExternalLink, Lock, Unlock, ChevronDown, ChevronUp, Trello } from 'lucide-react';
 import { getCurrentRepoConfig } from '../repoData';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const GitHubRepoMonitor = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -10,8 +12,41 @@ const GitHubRepoMonitor = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [readme, setReadme] = useState('');
+  const [showReadme, setShowReadme] = useState(false);
+  const [loadingReadme, setLoadingReadme] = useState(false);
   
   const repoConfig = getCurrentRepoConfig();
+
+  const fetchReadme = async () => {
+    setLoadingReadme(true);
+    try {
+      const headers = {
+        'Accept': 'application/vnd.github.v3.raw'
+      };
+      
+      if (repoConfig.token) {
+        headers['Authorization'] = `Bearer ${repoConfig.token}`;
+      }
+
+      const response = await fetch(
+        `https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}/readme`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        throw new Error('No se pudo obtener el README');
+      }
+
+      const content = await response.text();
+      setReadme(content);
+    } catch (error) {
+      console.error('Error fetching README:', error);
+      setReadme('No se pudo cargar el README.');
+    } finally {
+      setLoadingReadme(false);
+    }
+  };
 
   const fetchLatestRelease = async () => {
     try {
@@ -131,10 +166,12 @@ const GitHubRepoMonitor = () => {
         name: `${repoConfig.owner}/${repoConfig.repo}`,
         currentVersion: version,
         url: `https://github.com/${repoConfig.owner}/${repoConfig.repo}`,
-        frameworkPath: repoConfig.frameworkPath
+        frameworkPath: repoConfig.frameworkPath,
+        trelloUrl: repoConfig.trelloUrl || ''
       });
 
       await fetchRepoEvents();
+      await fetchReadme();
     } catch {
       setError('Error al cargar los datos del repositorio');
     } finally {
@@ -142,8 +179,7 @@ const GitHubRepoMonitor = () => {
     }
   };
 
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
+  const handlePasswordSubmit = () => {
     if (password === repoConfig.password) {
       setIsAuthenticated(true);
       setPasswordError('');
@@ -151,6 +187,10 @@ const GitHubRepoMonitor = () => {
     } else {
       setPasswordError('Contraseña incorrecta');
     }
+  };
+
+  const toggleReadme = () => {
+    setShowReadme(!showReadme);
   };
 
   useEffect(() => {
@@ -227,13 +267,18 @@ const GitHubRepoMonitor = () => {
             <p className="text-xs sm:text-sm text-gray-500 mt-2">{repoConfig.frameworkPath}</p>
           </div>
           
-          <form onSubmit={handlePasswordSubmit} className="space-y-4 px-4 sm:px-0">
+          <div className="space-y-4 px-4 sm:px-0">
             <div>
               <input
                 type="password"
                 placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handlePasswordSubmit(e);
+                  }
+                }}
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400 transition-all text-sm sm:text-base"
                 autoFocus
               />
@@ -242,7 +287,7 @@ const GitHubRepoMonitor = () => {
               )}
             </div>
             <button
-              type="submit"
+              onClick={handlePasswordSubmit}
               className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all text-sm sm:text-base"
             >
               <span className="flex items-center justify-center gap-2">
@@ -250,7 +295,7 @@ const GitHubRepoMonitor = () => {
                 Acceder
               </span>
             </button>
-          </form>
+          </div>
         </div>
       </div>
     );
@@ -294,13 +339,90 @@ const GitHubRepoMonitor = () => {
               </div>
             </div>
 
-            <div className="text-center mb-12 sm:mb-16">
+            <div className="text-center mb-8 sm:mb-12">
               <div className="inline-block">
                 <div className="text-5xl sm:text-7xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 animate-pulse">
                   {repoData.currentVersion}
                 </div>
                 <p className="text-gray-400 mt-2 sm:mt-4 text-sm sm:text-base">Versión Actual</p>
               </div>
+            </div>
+
+            {/* Botón de Trello */}
+            {repoData.trelloUrl && (
+              <div className="text-center mb-8">
+                <a
+                  href={repoData.trelloUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl"
+                >
+                  <Trello className="w-5 h-5" />
+                  Abrir Tablero de Trello
+                </a>
+              </div>
+            )}
+
+            {/* README desplegable */}
+            <div className="mb-12">
+              <button
+                onClick={toggleReadme}
+                className="w-full flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 rounded-lg transition-all"
+              >
+                <span className="text-lg font-semibold">README.md</span>
+                {showReadme ? (
+                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                )}
+              </button>
+              
+              {showReadme && (
+                <div className="mt-4 p-6 bg-gray-800 rounded-lg overflow-x-auto">
+                  {loadingReadme ? (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    </div>
+                  ) : (
+                    <div className="prose prose-invert prose-sm sm:prose-base max-w-none
+                      prose-headings:text-gray-200 prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
+                      prose-p:text-gray-300 prose-p:leading-relaxed
+                      prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+                      prose-strong:text-gray-100
+                      prose-code:text-pink-400 prose-code:bg-gray-900 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+                      prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700
+                      prose-blockquote:border-l-4 prose-blockquote:border-gray-600 prose-blockquote:pl-4 prose-blockquote:italic
+                      prose-ul:text-gray-300 prose-ol:text-gray-300
+                      prose-li:marker:text-gray-500
+                      prose-hr:border-gray-700
+                      prose-table:border-collapse prose-th:border prose-th:border-gray-700 prose-th:px-3 prose-th:py-2
+                      prose-td:border prose-td:border-gray-700 prose-td:px-3 prose-td:py-2">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          // Personalización adicional de componentes si es necesario
+                          code({inline, className, children, ...props}) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            return !inline && match ? (
+                              <pre className="overflow-x-auto">
+                                <code className={className} {...props}>
+                                  {children}
+                                </code>
+                              </pre>
+                            ) : (
+                              <code className={className} {...props}>
+                                {children}
+                              </code>
+                            );
+                          }
+                        }}
+                      >
+                        {readme}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
