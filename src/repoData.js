@@ -3,7 +3,7 @@ const repositories = {
     owner: 'facebook',
     repo: 'react',
     password: import.meta.env.VITE_PASSWORD_REACT || 'defaultPass123!',
-    token: '',
+    token: import.meta.env.VITE_GITHUB_API_URL || '',
     frameworkPath: 'react',
     trelloUrl: import.meta.env.VITE_TRELLO_URL_REACT || ''
   },
@@ -12,7 +12,7 @@ const repositories = {
     owner: 'vuejs',
     repo: 'core',
     password: import.meta.env.VITE_PASSWORD_VUE || 'defaultPass456!',
-    token: '',
+    token: import.meta.env.VITE_GITHUB_API_URL || '',
     frameworkPath: 'vue',
     trelloUrl: import.meta.env.VITE_TRELLO_URL_VUE || ''
   },
@@ -21,7 +21,7 @@ const repositories = {
     owner: 'angular',
     repo: 'angular',
     password: import.meta.env.VITE_PASSWORD_ANGULAR || 'defaultPass789!',
-    token: '',
+    token: import.meta.env.VITE_GITHUB_API_URL || '',
     frameworkPath: 'angular',
     trelloUrl: import.meta.env.VITE_TRELLO_URL_ANGULAR || ''
   },
