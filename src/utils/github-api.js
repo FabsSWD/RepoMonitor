@@ -6,7 +6,7 @@ const createHeaders = (repoConfig) => {
     'Accept': 'application/vnd.github.v3+json'
   };
   
-  if (repoConfig?.token) {
+  if (repoConfig.token) {
     headers['Authorization'] = `Bearer ${repoConfig.token}`;
   }
   
@@ -14,10 +14,6 @@ const createHeaders = (repoConfig) => {
 };
 
 export const fetchReadme = async (repoConfig) => {
-  if (!repoConfig) {
-    return 'Error: Configuración del repositorio no encontrada.';
-  }
-
   try {
     const headers = {
       ...createHeaders(repoConfig),
@@ -30,9 +26,6 @@ export const fetchReadme = async (repoConfig) => {
     );
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return `# ${repoConfig.repo}\n\nRepositorio en desarrollo. README será añadido próximamente.`;
-      }
       throw new GitHubApiError('No se pudo obtener el README', response.status);
     }
 
@@ -46,10 +39,6 @@ export const fetchReadme = async (repoConfig) => {
 };
 
 export const fetchLatestRelease = async (repoConfig) => {
-  if (!repoConfig) {
-    return 'v0.0.0';
-  }
-
   try {
     const headers = createHeaders(repoConfig);
 
@@ -70,8 +59,7 @@ export const fetchLatestRelease = async (repoConfig) => {
           return tags[0].name;
         }
       }
-      
-      return 'v0.1.0-dev';
+      return 'v0.0.0';
     }
 
     if (!response.ok) {
@@ -82,6 +70,7 @@ export const fetchLatestRelease = async (repoConfig) => {
     return data.tag_name || 'v0.0.0';
   } catch (error) {
     if (error instanceof GitHubApiError) {
+      console.error('Error fetching release:', error);
       return 'v0.0.0';
     }
     return handleApiError(error);
@@ -89,40 +78,87 @@ export const fetchLatestRelease = async (repoConfig) => {
 };
 
 export const fetchRepoEvents = async (repoConfig) => {
-  if (!repoConfig) {
-    throw new GitHubApiError('Configuración del repositorio no encontrada', 500);
-  }
+  try {
+    const headers = createHeaders(repoConfig);
 
-  const headers = createHeaders(repoConfig);
+    const response = await fetch(
+      `${config.github.apiUrl}/repos/${repoConfig.owner}/${repoConfig.repo}/events?per_page=30`,
+      { headers }
+    );
 
-  const response = await fetch(
-    `${config.github.apiUrl}/repos/${repoConfig.owner}/${repoConfig.repo}/events?per_page=30`,
-    { headers }
-  );
-
-  if (!response.ok) {
-    if (response.status === 403) {
-      throw new GitHubApiError('Límite de API excedido. Configura un token de GitHub.', 403);
+    if (!response.ok) {
+      if (response.status === 403) {
+        throw new GitHubApiError('Límite de API excedido. Configura un token de GitHub.', 403);
+      }
+      throw new GitHubApiError('No se pudieron obtener los eventos', response.status);
     }
-    throw new GitHubApiError('No se pudieron obtener los eventos', response.status);
-  }
 
-  const data = await response.json();
-  
-  const processedEvents = data
-    .filter(event => event.type === 'PushEvent' || event.type === 'CreateEvent')
-    .slice(0, config.ui.maxEvents)
-    .map(event => {
+    const eventsData = await response.json();
+
+    const filtered = eventsData
+      .filter(event => event.type === 'PushEvent' || event.type === 'CreateEvent' || event.type === 'PullRequestEvent')
+      .slice(0, config.ui.maxEvents);
+
+    // Collect SHAs and PR numbers that need separate fetches
+    const commitSHAsToFetch = new Set();
+    const prNumbersToFetch = new Set();
+
+    filtered.forEach(event => {
       if (event.type === 'PushEvent') {
         const commit = event.payload.commits?.[0];
+        // Use commit SHA if available, otherwise fall back to payload.head (HEAD after push)
+        const sha = commit?.sha || event.payload.head;
+        if (sha && !commit?.message) {
+          commitSHAsToFetch.add(sha);
+        }
+      } else if (event.type === 'PullRequestEvent') {
+        const prNumber = event.payload.pull_request?.number;
+        if (prNumber && !event.payload.pull_request?.title) {
+          prNumbersToFetch.add(prNumber);
+        }
+      }
+    });
+
+    // Fetch missing details in parallel
+    const [commitResults, prResults] = await Promise.all([
+      Promise.all([...commitSHAsToFetch].map(sha =>
+        fetch(`${config.github.apiUrl}/repos/${repoConfig.owner}/${repoConfig.repo}/commits/${sha}`, { headers })
+          .then(r => r.ok ? r.json() : null).catch(() => null)
+      )),
+      Promise.all([...prNumbersToFetch].map(num =>
+        fetch(`${config.github.apiUrl}/repos/${repoConfig.owner}/${repoConfig.repo}/pulls/${num}`, { headers })
+          .then(r => r.ok ? r.json() : null).catch(() => null)
+      ))
+    ]);
+
+    const commitMap = {};
+    [...commitSHAsToFetch].forEach((sha, i) => {
+      if (commitResults[i]?.commit?.message) {
+        commitMap[sha] = commitResults[i].commit.message.split('\n')[0].trim();
+      }
+    });
+
+    const prMap = {};
+    [...prNumbersToFetch].forEach((num, i) => {
+      if (prResults[i]) prMap[num] = prResults[i];
+    });
+
+    return filtered.map(event => {
+      if (event.type === 'PushEvent') {
+        const commit = event.payload.commits?.[0];
+        const sha = commit?.sha || event.payload.head;
+        const message =
+          commitMap[sha] ||
+          commit?.message?.split('\n')[0].trim() ||
+          'Sin mensaje';
         return {
           id: event.id,
           type: 'push',
           branch: event.payload.ref?.replace('refs/heads/', '') || 'unknown',
-          message: commit?.message || 'Sin mensaje',
+          message,
           author: event.actor.login,
           timestamp: event.created_at,
-          sha: commit?.sha?.substring(0, 7) || 'unknown',
+          sha: sha?.substring(0, 7) || 'unknown',
           avatarUrl: event.actor.avatar_url
         };
       } else if (event.type === 'CreateEvent' && event.payload.ref_type === 'branch') {
@@ -136,23 +172,32 @@ export const fetchRepoEvents = async (repoConfig) => {
           sha: 'N/A',
           avatarUrl: event.actor.avatar_url
         };
+      } else if (event.type === 'PullRequestEvent') {
+        const prPayload = event.payload.pull_request;
+        const prNumber = prPayload?.number;
+        const pr = prMap[prNumber] || prPayload;
+        const action = event.payload.action;
+        const isMerged = action === 'closed' && (pr?.merged || prPayload?.merged);
+        const actionLabel = isMerged ? 'mergeado' : action === 'closed' ? 'cerrado' : action === 'reopened' ? 'reabierto' : 'abierto';
+        return {
+          id: event.id,
+          type: 'pr',
+          branch: pr?.base?.ref || 'unknown',
+          message: pr?.title || 'Sin título',
+          author: event.actor.login,
+          timestamp: event.created_at,
+          sha: `#${prNumber || 'N/A'}`,
+          avatarUrl: event.actor.avatar_url,
+          prAction: actionLabel,
+          prUrl: pr?.html_url || prPayload?.html_url,
+          sourceBranch: pr?.head?.ref || 'unknown',
+          merged: isMerged
+        };
       }
       return null;
-    })
-    .filter(Boolean);
-
-  if (processedEvents.length === 0) {
-    return [{
-      id: 'temp-activity',
-      type: 'push',
-      branch: 'development',
-      message: 'Repositorio en desarrollo activo',
-      author: repoConfig.owner,
-      timestamp: new Date().toISOString(),
-      sha: 'initial',
-      avatarUrl: `https://avatars.githubusercontent.com/u/131935084?v=4`
-    }];
+    }).filter(Boolean);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    throw error;
   }
-  
-  return processedEvents;
 };

@@ -5,7 +5,6 @@ import LoadingScreen from '../components/Screens/LoadingScreen';
 import ErrorDisplay from '../components/Display/ErrorDisplay';
 import RepoHeader from '../components/RepoHeader';
 import VersionDisplay from '../components/Display/VersionDisplay';
-import TrelloButton from '../components/Buttons/TrelloButton';
 import ActivityFeed from '../components/Activities/ActivityFeed';
 import { useAuth } from '../hooks/useAuth';
 import { useRepoData } from '../hooks/useRepoData';
