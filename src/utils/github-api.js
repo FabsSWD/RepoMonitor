@@ -112,7 +112,7 @@ export const fetchRepoEvents = async (repoConfig) => {
           commitSHAsToFetch.add(sha);
         }
       } else if (event.type === 'PullRequestEvent') {
-        const prNumber = event.payload.number || event.payload.pull_request?.number;
+        const prNumber = event.payload.pull_request?.number;
         if (prNumber && !event.payload.pull_request?.title) {
           prNumbersToFetch.add(prNumber);
         }
@@ -174,7 +174,7 @@ export const fetchRepoEvents = async (repoConfig) => {
         };
       } else if (event.type === 'PullRequestEvent') {
         const prPayload = event.payload.pull_request;
-        const prNumber = event.payload.number || prPayload?.number;
+        const prNumber = prPayload?.number;
         const pr = prMap[prNumber] || prPayload;
         const action = event.payload.action;
         const isMerged = action === 'closed' && (pr?.merged || prPayload?.merged);
