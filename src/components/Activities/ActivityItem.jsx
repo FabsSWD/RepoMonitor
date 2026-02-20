@@ -42,8 +42,15 @@ const ActivityItem = ({ event, index }) => {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2 mb-2">
           <div>
             <span className="text-xs sm:text-sm font-semibold text-gray-300">
-              {event.type === 'branch' ? 'Nueva rama: ' : 'Push a '}
+              {event.type === 'branch'
+                ? 'Nueva rama: '
+                : event.type === 'pr'
+                ? `PR ${event.prAction} hacia `
+                : 'Push a '}
               <span className="text-blue-400">{event.branch}</span>
+              {event.type === 'pr' && (
+                <span className="text-gray-500"> desde <span className="text-blue-400">{event.sourceBranch}</span></span>
+              )}
             </span>
           </div>
           <span className="text-xs text-gray-500">{formatTimestamp(event.timestamp)}</span>
@@ -51,7 +58,17 @@ const ActivityItem = ({ event, index }) => {
         <p className="text-white mb-2 break-words text-sm sm:text-base">{event.message}</p>
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs text-gray-400">
           <span>Por: @{event.author}</span>
-          {event.sha !== 'N/A' && <span className="hidden sm:inline">SHA: {event.sha}</span>}
+          {event.sha !== 'N/A' && (
+            <span className="hidden sm:inline">
+              {event.type === 'pr' ? (
+                <a href={event.prUrl} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">
+                  PR {event.sha}
+                </a>
+              ) : (
+                `SHA: ${event.sha}`
+              )}
+            </span>
+          )}
         </div>
       </div>
     </div>

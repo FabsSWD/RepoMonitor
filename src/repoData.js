@@ -25,6 +25,15 @@ const repositories = {
     frameworkPath: 'angular',
     trelloUrl: import.meta.env.VITE_TRELLO_URL_ANGULAR || ''
   },
+
+  repomonitor: {
+    owner: 'FabsSWD',
+    repo: 'repo-monitor-application',
+    password: import.meta.env.VITE_PASSWORD_RM || '',
+    token: import.meta.env.VITE_GITHUB_TOKEN_RM || '',
+    frameworkPath: 'repomonitor',
+    trelloUrl: import.meta.env.VITE_TRELLO_URL_REPOMONITOR || ''
+  }
 };
 
 export const getCurrentRepoConfig = () => {

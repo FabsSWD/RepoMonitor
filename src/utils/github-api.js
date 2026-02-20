@@ -96,7 +96,7 @@ export const fetchRepoEvents = async (repoConfig) => {
     const data = await response.json();
     
     return data
-      .filter(event => event.type === 'PushEvent' || event.type === 'CreateEvent')
+      .filter(event => event.type === 'PushEvent' || event.type === 'CreateEvent' || event.type === 'PullRequestEvent')
       .slice(0, config.ui.maxEvents)
       .map(event => {
         if (event.type === 'PushEvent') {
@@ -105,7 +105,7 @@ export const fetchRepoEvents = async (repoConfig) => {
             id: event.id,
             type: 'push',
             branch: event.payload.ref?.replace('refs/heads/', '') || 'unknown',
-            message: commit?.message || 'Sin mensaje',
+            message: commit?.message?.split('\n')[0].trim() || 'Sin mensaje',
             author: event.actor.login,
             timestamp: event.created_at,
             sha: commit?.sha?.substring(0, 7) || 'unknown',
@@ -121,6 +121,25 @@ export const fetchRepoEvents = async (repoConfig) => {
             timestamp: event.created_at,
             sha: 'N/A',
             avatarUrl: event.actor.avatar_url
+          };
+        } else if (event.type === 'PullRequestEvent') {
+          const pr = event.payload.pull_request;
+          const action = event.payload.action;
+          const isMerged = action === 'closed' && pr.merged;
+          const actionLabel = isMerged ? 'mergeado' : action === 'closed' ? 'cerrado' : action === 'reopened' ? 'reabierto' : 'abierto';
+          return {
+            id: event.id,
+            type: 'pr',
+            branch: pr.base?.ref || 'unknown',
+            message: pr.title || 'Sin título',
+            author: event.actor.login,
+            timestamp: event.created_at,
+            sha: `#${pr.number}`,
+            avatarUrl: event.actor.avatar_url,
+            prAction: actionLabel,
+            prUrl: pr.html_url,
+            sourceBranch: pr.head?.ref || 'unknown',
+            merged: isMerged
           };
         }
         return null;
