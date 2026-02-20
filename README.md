@@ -273,6 +273,15 @@ Perfect for:
 - **Stakeholders**: Monitor release cycles and team activity
 - **Teams**: Share development status with non-technical members
 
+---
+
+## **Developed by**
+| Name | Role | Sub-Role |
+|------|------|------|
+| Fabian Abarca | Lead Developer | Config Admin |
+| Jose Daniel Araya | Frontend Developer | Developer |
+| Moises Brenes | Backend Developer | Developer |
+| Emmanuel Ayala | QA Specialist | Config Audit |
 
 ---
 
