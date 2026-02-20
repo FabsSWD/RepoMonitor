@@ -4,6 +4,8 @@
 
 *Developed for frameworksoft.io - Version 1.1.2 is now open source*
 
+*Last updated on 19/02/2026*
+
 ---
 
 ## 📋 Table of Contents
@@ -273,6 +275,15 @@ Perfect for:
 - **Stakeholders**: Monitor release cycles and team activity
 - **Teams**: Share development status with non-technical members
 
+---
+
+## **Developed by**
+| Name | Role | Sub-Role |
+|------|------|------|
+| Fabian Abarca | Lead Developer | Config Admin |
+| Jose Daniel Araya | Frontend Developer | Developer |
+| Moises Brenes | Backend Developer | Developer |
+| Emmanuel Ayala | QA Specialist | Config Audit |
 
 ---
 
