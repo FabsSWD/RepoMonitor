@@ -4,6 +4,8 @@
 
 *Developed for frameworksoft.io - Version 1.1.2 is now open source*
 
+*Last updated on 19/02/2026*
+
 ---
 
 ## 📋 Table of Contents
