@@ -2,7 +2,7 @@
 
 **GitHub Repository Monitor** is a real-time monitoring dashboard that tracks GitHub repository activities, releases, and development progress. Built with **React 19** and **Vite**, it provides a clean, password-protected interface for non-technical stakeholders to visualize project advancement through commits, branches, and version releases.
 
-*Developed for frameworksoft.io - Version 1.1.2 is now open source*
+*Developed for frameworksoft.io - Version 1.2.0 is now open source*
 
 *Last updated on 19/02/2026*
 
